@@ -1,0 +1,85 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="IE=edge" http-equiv="X-UA-Compatible">
+  <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+  <meta content="webkit" name="renderer">
+  <meta content="no-siteapp" http-equiv="Cache-Control">
+  <title>Evo Console</title>
+  <style>
+    
+  </style>
+</head>
+<body>
+  <div id="Chart"><img id="ChartImg"></div>
+  <div id="CliInfo"></div>
+  <select id="TagList" value="_ALL_"><option value="_ALL_">ALL</option></select>
+  <span id="ConInfo"></span>
+  <pre id="Con"></pre>
+
+  <script>
+    (()=>{
+      const update_interval = 1000;
+      const tag_list = document.getElementById("TagList");
+      const con_info = document.getElementById("ConInfo");
+      const con = document.getElementById("Con");
+      const chart_img = document.getElementById("ChartImg");
+      const cli_info = document.getElementById("CliInfo");
+      tag_list.onchange = refersh_con;
+
+      let con_data = [];
+
+      function refersh_con() {
+        const v = tag_list.value;
+        const l = con_data.filter((x)=>{ return v === "_ALL_" || x[0] === v}).map((x)=>{return x[1];});
+        con_info.innerText = l.length.toString() + " entities";
+        con.innerText = l.join("");
+      }
+
+      function do_update() {
+        const img = new Image();
+        const update_url = "/update?d=" + Date.now();
+        const chart_url = "/chart.svg?d=" + Date.now();
+        img.src = chart_url;
+        img.onload = ()=>{
+          chart_img.src = chart_url;
+        };
+        const xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = ()=>{
+          if(xhr.readyState == 4) {
+            if(xhr.status != 200)
+              console.log(xhr);
+            else {
+              const obj = JSON.parse(xhr.responseText);
+              const v = tag_list.value;
+              tag_list.innerHTML = '<option value="_ALL_">ALL</option>';
+              new Set(obj.console_data.map((x)=>{return x[0];})).forEach((x)=>{
+                const e = document.createElement("option");
+                e.value = x;
+                e.innerText = x;
+                tag_list.appendChild(e);
+              });
+              tag_list.value = v;
+              let s = "";
+              for(let i = 0; i < obj.cli_data.length; ++i) {
+                const x = obj.cli_data[i];
+                const status_str = x[3] ? "Working" : "Idle";
+                s += "#" + x[0].toString() + "(" + x[2] + ")" + ": " + status_str + ", last_seen=" + x[1].toFixed(1) + "s ago\n";
+              }
+              cli_info.innerText = s;
+              con_data = obj.console_data;
+              refersh_con();
+            }
+            setTimeout(do_update, update_interval);
+          }
+        };
+        xhr.open("GET", update_url, true);
+        xhr.send();
+      }
+
+      do_update();
+    })();
+  </script>
+</body>
+</html>
