@@ -1,5 +1,5 @@
 # E-MRP-CNN
-This is the original code used in Evolving Multi-Resolution Pooling CNN for Monaural Singing Voice Separation.
+This is the original code used in paper *[Evolving Multi-Resolution Pooling CNN for Monaural Singing Voice Separation](https://ieeexplore.ieee.org/document/9325566)*, which is published on IEEE/ACM Transactions on Audio, Speech, and Language Processing.
 
 You can download pretrained models from https://tuxzz.org/emrpcnn-ckpt/
 
